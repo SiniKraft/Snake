@@ -184,4 +184,3 @@ while True:
     if (snake_location.get_grid_pos()[1] == 36) or (snake_location.get_grid_pos()[0] == 64) or \
             (snake_location.get_grid_pos()[0] == -1) or (snake_location.get_grid_pos()[1] == -1):
         fin()
-#test
