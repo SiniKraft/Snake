@@ -174,14 +174,10 @@ while True:
     elif current_direction == Directions.DOWN:
         snake_rect.move_ip(0, 1)
 
-
-
     screen.blit(img_grille, (0, 0))
-    # screen.blit(patate, (0, 0))
     update_patates()
     screen.blit(snake_head, snake_rect)
     pygame.display.update()
     if (snake_location.get_grid_pos()[1] == 36) or (snake_location.get_grid_pos()[0] == 64) or \
             (snake_location.get_grid_pos()[0] == -1) or (snake_location.get_grid_pos()[1] == -1):
         fin()
-
