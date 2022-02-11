@@ -189,12 +189,12 @@ while True:
     clock.tick(FPS)
     if boost < boost_time_to_wait:
         boost += 1
-    timer += 1
     if boost < 0:
         factor = 2
     else:
         factor = 1
     for _iterator in range(0, factor):
+        timer += 1
         if timer > 19:
             snake_location.set_pos((snake_rect.x, snake_rect.y))
             snake_location.set_grid_pos((snake_location.get_grid_pos()[0], snake_location.get_grid_pos()[1] + 1))  # le +
