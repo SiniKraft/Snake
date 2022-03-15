@@ -1,5 +1,7 @@
 import random
 import math
+import os
+import pickle
 import pygame
 import tkinter
 import tkinter.messagebox
@@ -109,28 +111,46 @@ class Body(pygame.sprite.Sprite):
         self.rect = pygame.rect.Rect(-1, -1, 20, 20)
         self.rect.x, self.rect.y = location.get_pos()
         self.location = Location(self.rect)
-        self.image = pygame.transform.rotate(snake_body_original, 90)
+        self.original_image = pygame.transform.rotate(snake_body_original, 90)
         self.is_bottom = is_bottom
         self.direction = _dir
+        self.cur_dir = self.direction
 
         if self.is_bottom:
-            self.image = pygame.transform.rotate(snake_bottom_original, 90)
+            self.original_image = pygame.transform.rotate(snake_bottom_original, 90)
+
+        self.image = self.original_image
 
     def update_rect_from_location(self):
         self.rect.x, self.rect.y = self.location.get_pos()
 
     def update(self, index: int):
         self.direction = historique[index].direction
-        self.direction = historique[index].direction
+        if self.direction != self.cur_dir:
+            not_equal = True
+        else:
+            not_equal = False
         if self.direction == Directions.RIGHT:
             self.rect.move_ip(1, 0)
+            if not_equal:
+                self.image = pygame.transform.rotate(self.original_image, 0)
         elif self.direction == Directions.LEFT:
             self.rect.move_ip(-1, 0)
+            if not_equal:
+                self.image = pygame.transform.rotate(self.original_image, 180)
         elif self.direction == Directions.UP:
             self.rect.move_ip(0, -1)
+            if not_equal:
+                self.image = pygame.transform.rotate(self.original_image, 90)
         elif self.direction == Directions.DOWN:
             self.rect.move_ip(0, 1)
-        screen.blit(self.image, self.rect)
+            if not_equal:
+                self.image = pygame.transform.rotate(self.original_image, -90)
+        if not_equal:
+            self.cur_dir = self.direction
+        tmp_rect = self.rect.copy()
+        tmp_rect.x = self.rect.x + 2
+        screen.blit(self.image, tmp_rect)
 
 
 class History:
@@ -172,11 +192,28 @@ class Directions:
         super().__init__()
 
 
+def sauvegarder(score):
+    with open("sauvegarde.dat", "wb+") as file:
+        pickle.dump(score, file)
+        file.close()
+
+
+def charger():
+    with open("sauvegarde.dat", "rb") as file:
+        save_data = pickle.load(file)
+        file.close()
+    return save_data
+
+
+if not os.path.isfile("sauvegarde.dat"):
+    sauvegarder(0)  # Crée un fichier indiquand que le meilleur score est 0
+best_score = charger()
+
 direction = Directions.RIGHT
 current_direction = direction
 add_patate()
 snake_location = Location(pygame.rect.Rect(0, 0, 20, 20))
-historique = [History(Directions.RIGHT) for x in range(0, 5)]
+historique = [History(Directions.RIGHT) for x in range(0, 7)]
 corps = []
 boost_time_to_wait = 1000  # Le temps à attendre avant que le joueur peut denouveau se boost.
 boost = boost_time_to_wait  # Le joueur peut se boost dès le début du jeu
@@ -197,7 +234,8 @@ while True:
         timer += 1
         if timer > 19:
             snake_location.set_pos((snake_rect.x, snake_rect.y))
-            snake_location.set_grid_pos((snake_location.get_grid_pos()[0], snake_location.get_grid_pos()[1] + 1))  # le +
+            snake_location.set_grid_pos(
+                (snake_location.get_grid_pos()[0], snake_location.get_grid_pos()[1] + 1))  # le +
             # 1 fix le bug de -1, fin laisse comme ça
             if not direction == get_opposite(current_direction):
                 current_direction = direction
@@ -244,7 +282,10 @@ while True:
         screen.blit(img_grille, (0, 0))
         update_patates()
         for x in range(0, len(corps)):
-            corps[x].update(x)
+            try:
+                corps[x].update(x + 1)
+            except:
+                pass
         screen.blit(snake_head, snake_rect)
         pygame.display.update()
         if (snake_location.get_grid_pos()[1] == 36) or (snake_location.get_grid_pos()[0] == 64) or \
