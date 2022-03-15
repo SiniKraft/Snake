@@ -34,10 +34,10 @@ patates = []
 points = 0
 
 
-def affichage(screen2, text, rect=(0, 0), _font="Verdana", size=6, color=(238, 244, 247)):
+def affichage(screen2: pygame.Surface, text: str, rect=(0, 0), _font="Verdana", size=6, color=(238, 244, 247)):
     font = pygame.font.SysFont(_font, size)
     text_img = font.render(text, True, color)
-    screen.blit(text_img, rect)
+    screen2.blit(text_img, rect)
 
 
 def fin():
@@ -46,7 +46,39 @@ def fin():
 
 
 def add_patate():
-    patates.append(Patate())
+    global menu_fin
+    if points == 300:
+        menu_fin = True
+    else:
+        patates.append(Patate())
+        if points > 0:  # ne fais pas crash lors de l'ajout de la patate initiale
+            to_add_2 = corps[points + 3]
+            to_add_2.show = True
+            to_add_2.is_bottom = False
+            to_add_2.original_image = pygame.transform.rotate(snake_body_original, 90)
+            __direction = historique[points + 3].direction
+            if __direction == Directions.RIGHT:
+                to_add_2.image = pygame.transform.rotate(to_add_2.original_image, 0)
+            elif __direction == Directions.LEFT:
+                to_add_2.image = pygame.transform.rotate(to_add_2.original_image, 180)
+            elif __direction == Directions.UP:
+                to_add_2.image = pygame.transform.rotate(to_add_2.original_image, 90)
+            elif __direction == Directions.DOWN:
+                to_add_2.image = pygame.transform.rotate(to_add_2.original_image, -90)
+            to_add = corps[points + 4]
+            body_group.add(to_add)
+            to_add.show = True
+            to_add.is_bottom = True
+            to_add.original_image = pygame.transform.rotate(snake_bottom_original, 90)
+            __direction = historique[points + 4].direction
+            if __direction == Directions.RIGHT:
+                to_add.image = pygame.transform.rotate(to_add.original_image, 0)
+            elif __direction == Directions.LEFT:
+                to_add.image = pygame.transform.rotate(to_add.original_image, 180)
+            elif __direction == Directions.UP:
+                to_add.image = pygame.transform.rotate(to_add.original_image, 90)
+            elif __direction == Directions.DOWN:
+                to_add.image = pygame.transform.rotate(to_add.original_image, -90)
 
 
 def update_patates():
@@ -58,8 +90,8 @@ def update_patates():
                 patatoide.eat()
                 points = points + 1
                 add_patate()
-                if random.randint(0, 10) > 9:
-                    add_patate()  # petite chance d'en voir une deuxième !
+                # if random.randint(0, 10) > 9:
+                #     add_patate()  # petite chance d'en voir une deuxième !
 
 
 class Patate(pygame.sprite.Sprite):
@@ -67,7 +99,7 @@ class Patate(pygame.sprite.Sprite):
         super(Patate, self).__init__()
         self.image = patate
         self.location = Location(pygame.rect.Rect(0, 0, 20, 20))
-        self.location.set_grid_pos((random.randint(0, 64), random.randint(0, 36)))
+        self.location.set_grid_pos((random.randint(1, 63), random.randint(1, 35)))
         self.rect = self.image.get_rect()
         self.rect.x = self.location.x
         self.rect.y = self.location.y
@@ -118,6 +150,7 @@ class Body(pygame.sprite.Sprite):
         self.is_bottom = is_bottom
         self.direction = _dir
         self.cur_dir = self.direction
+        self.show = True
 
         if self.is_bottom:
             self.original_image = pygame.transform.rotate(snake_bottom_original, 90)
@@ -153,7 +186,8 @@ class Body(pygame.sprite.Sprite):
             self.cur_dir = self.direction
         tmp_rect = self.rect.copy()
         tmp_rect.x = self.rect.x + 2
-        screen.blit(self.image, tmp_rect)
+        if self.show:
+            screen.blit(self.image, tmp_rect)
 
 
 class History:
@@ -216,14 +250,20 @@ direction = Directions.RIGHT
 current_direction = direction
 add_patate()
 snake_location = Location(pygame.rect.Rect(0, 0, 20, 20))
-historique = [History(Directions.RIGHT) for x in range(0, 7)]
+historique = [History(Directions.RIGHT) for x in range(0, 102)]
 corps = []
 boost_time_to_wait = 1000  # Le temps à attendre avant que le joueur peut denouveau se boost.
 boost = boost_time_to_wait  # Le joueur peut se boost dès le début du jeu
 boost_time_boosting = 250  # Détermine combien de temps le joueur est boost
-for _x in range(0, 5):
+body_group = pygame.sprite.Group()
+for _x in range(0, 300):
     corps.append(Body(Location(pygame.rect.Rect(-1 - _x * 20 - 20, -1, 20, 20)), Directions.RIGHT))
-corps[-1] = Body(Location(pygame.rect.Rect(-1 - 100, -1, 20, 20)), Directions.RIGHT, True)  # Last is bottom :/
+
+    if _x > 4:
+        corps[_x].show = False
+    else:
+        body_group.add(corps[_x])
+corps[4] = Body(Location(pygame.rect.Rect(-1 - 100, -1, 20, 20)), Directions.RIGHT, True)  # Last is bottom :/
 
 menu_fin = False
 
@@ -281,13 +321,13 @@ while True:
                     menu_fin = True
 
                 elif event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_z:
+                    if event.key == pygame.K_z or event.key == pygame.K_UP:
                         direction = Directions.UP
-                    elif event.key == pygame.K_s:
+                    elif event.key == pygame.K_s or event.key == pygame.K_DOWN:
                         direction = Directions.DOWN
-                    elif event.key == pygame.K_q:
+                    elif event.key == pygame.K_q or event.key == pygame.K_LEFT:
                         direction = Directions.LEFT
-                    elif event.key == pygame.K_d:
+                    elif event.key == pygame.K_d or event.key == pygame.K_RIGHT:
                         direction = Directions.RIGHT
                     elif event.key == pygame.K_SPACE:
                         if boost == boost_time_to_wait:
@@ -310,6 +350,8 @@ while True:
                     pass
             screen.blit(snake_head, snake_rect)
             pygame.display.update()
+            if len(pygame.sprite.spritecollide(corps[0], body_group, False)) > 2:
+                menu_fin = True
             if (snake_location.get_grid_pos()[1] == 36) or (snake_location.get_grid_pos()[0] == 64) or \
                     (snake_location.get_grid_pos()[0] == -1) or (snake_location.get_grid_pos()[1] == -1):
                 menu_fin = True
