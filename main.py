@@ -3,8 +3,7 @@ import math
 import os
 import pickle
 import pygame
-import tkinter
-import tkinter.messagebox
+import time
 
 successes, failures = pygame.init()
 print("{0} successes and {1} failures".format(successes, failures))
@@ -33,11 +32,13 @@ patates = []
 points = 0
 
 
+def affichage(screen2, text, rect=(0, 0), _font="Verdana", size=6, color=(238, 244, 247)):
+    font = pygame.font.SysFont(_font, size)
+    text_img = font.render(text, True, color)
+    screen.blit(text_img, rect)
+
+
 def fin():
-    root = tkinter.Tk()
-    root.withdraw()
-    tkinter.messagebox.showinfo("Fin de la partie", "Vous avez mangé {0} patates".format(points))
-    root.destroy()
     pygame.quit()
     quit()
 
@@ -222,72 +223,93 @@ for _x in range(0, 5):
     corps.append(Body(Location(pygame.rect.Rect(-1 - _x * 20 - 20, -1, 20, 20)), Directions.RIGHT))
 corps[-1] = Body(Location(pygame.rect.Rect(-1 - 100, -1, 20, 20)), Directions.RIGHT, True)  # Last is bottom :/
 
-while True:
-    clock.tick(FPS)
-    if boost < boost_time_to_wait:
-        boost += 1
-    if boost < 0:
-        factor = 2
-    else:
-        factor = 1
-    for _iterator in range(0, factor):
-        timer += 1
-        if timer > 19:
-            snake_location.set_pos((snake_rect.x, snake_rect.y))
-            snake_location.set_grid_pos(
-                (snake_location.get_grid_pos()[0], snake_location.get_grid_pos()[1] + 1))  # le +
-            # 1 fix le bug de -1, fin laisse comme ça
-            if not direction == get_opposite(current_direction):
-                current_direction = direction
-            if current_direction == Directions.RIGHT:
-                snake_head = pygame.transform.rotate(snake_head_original, 90)
-            elif current_direction == Directions.LEFT:
-                snake_head = pygame.transform.rotate(snake_head_original, -90)
-            elif current_direction == Directions.UP:
-                snake_head = pygame.transform.rotate(snake_head_original, 180)
-            elif current_direction == Directions.DOWN:
-                snake_head = pygame.transform.rotate(snake_head_original, 0)
-            timer = 0
-            a = len(historique)
-            for x in range(0, a + 1):
-                historique[a - x - 1] = historique[a - x - 2]
-            historique[0] = (History(current_direction))
+menu_fin = False
 
+while True:
+    if menu_fin:
+        clock.tick(FPS)
+        img_fin = pygame.image.load("game_over.png").convert_alpha()
+        img_fin = pygame.transform.scale(img_fin, (1280, 720))
+        screen.blit(img_fin, (0, 0))
+        _str = "Tu as mangé %s patate" % points
+        if not points == 1:
+            _str = _str + "s"
+        affichage(screen, _str + " !", (400, 425), "Verdana", 40)
+        affichage(screen, "Veux-tu recommencer la partie ?", (350, 500), "Verdana", 40)
+        affichage(screen, "Appuie sur Entrée pour recommencer", (280, 550), "Verdana", 40)
+        affichage(screen, "et sur Echap pour quitter.", (390, 600), "Verdana", 40)
+        pygame.display.update()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 fin()
-
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_z:
-                    direction = Directions.UP
-                elif event.key == pygame.K_s:
-                    direction = Directions.DOWN
-                elif event.key == pygame.K_q:
-                    direction = Directions.LEFT
-                elif event.key == pygame.K_d:
-                    direction = Directions.RIGHT
-                elif event.key == pygame.K_SPACE:
-                    if boost == boost_time_to_wait:
-                        boost = boost_time_boosting * -1
+                if event.key == pygame.K_ESCAPE:
+                    fin()
+    else:
+        clock.tick(FPS)
+        if boost < boost_time_to_wait:
+            boost += 1
+        if boost < 0:
+            factor = 2
+        else:
+            factor = 1
+        for _iterator in range(0, factor):
+            timer += 1
+            if timer > 19:
+                snake_location.set_pos((snake_rect.x, snake_rect.y))
+                snake_location.set_grid_pos(
+                    (snake_location.get_grid_pos()[0], snake_location.get_grid_pos()[1] + 1))  # le +
+                # 1 fix le bug de -1, fin laisse comme ça
+                if not direction == get_opposite(current_direction):
+                    current_direction = direction
+                if current_direction == Directions.RIGHT:
+                    snake_head = pygame.transform.rotate(snake_head_original, 90)
+                elif current_direction == Directions.LEFT:
+                    snake_head = pygame.transform.rotate(snake_head_original, -90)
+                elif current_direction == Directions.UP:
+                    snake_head = pygame.transform.rotate(snake_head_original, 180)
+                elif current_direction == Directions.DOWN:
+                    snake_head = pygame.transform.rotate(snake_head_original, 0)
+                timer = 0
+                a = len(historique)
+                for x in range(0, a + 1):
+                    historique[a - x - 1] = historique[a - x - 2]
+                historique[0] = (History(current_direction))
 
-        if current_direction == Directions.RIGHT:
-            snake_rect.move_ip(1, 0)
-        elif current_direction == Directions.LEFT:
-            snake_rect.move_ip(-1, 0)
-        elif current_direction == Directions.UP:
-            snake_rect.move_ip(0, -1)
-        elif current_direction == Directions.DOWN:
-            snake_rect.move_ip(0, 1)
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    menu_fin = True
 
-        screen.blit(img_grille, (0, 0))
-        update_patates()
-        for x in range(0, len(corps)):
-            try:
-                corps[x].update(x + 1)
-            except:
-                pass
-        screen.blit(snake_head, snake_rect)
-        pygame.display.update()
-        if (snake_location.get_grid_pos()[1] == 36) or (snake_location.get_grid_pos()[0] == 64) or \
-                (snake_location.get_grid_pos()[0] == -1) or (snake_location.get_grid_pos()[1] == -1):
-            fin()
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_z:
+                        direction = Directions.UP
+                    elif event.key == pygame.K_s:
+                        direction = Directions.DOWN
+                    elif event.key == pygame.K_q:
+                        direction = Directions.LEFT
+                    elif event.key == pygame.K_d:
+                        direction = Directions.RIGHT
+                    elif event.key == pygame.K_SPACE:
+                        if boost == boost_time_to_wait:
+                            boost = boost_time_boosting * -1
+
+            if current_direction == Directions.RIGHT:
+                snake_rect.move_ip(1, 0)
+            elif current_direction == Directions.LEFT:
+                snake_rect.move_ip(-1, 0)
+            elif current_direction == Directions.UP:
+                snake_rect.move_ip(0, -1)
+            elif current_direction == Directions.DOWN:
+                snake_rect.move_ip(0, 1)
+            screen.blit(img_grille, (0, 0))
+            update_patates()
+            for x in range(0, len(corps)):
+                try:
+                    corps[x].update(x + 1)
+                except:
+                    pass
+            screen.blit(snake_head, snake_rect)
+            pygame.display.update()
+            if (snake_location.get_grid_pos()[1] == 36) or (snake_location.get_grid_pos()[0] == 64) or \
+                    (snake_location.get_grid_pos()[0] == -1) or (snake_location.get_grid_pos()[1] == -1):
+                menu_fin = True
