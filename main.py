@@ -3,12 +3,12 @@ import math
 import os
 import pickle
 import pygame
-import time
 
 successes, failures = pygame.init()
 print("{0} successes and {1} failures".format(successes, failures))
 
 screen = pygame.display.set_mode((1280, 720))
+pygame.display.set_caption("Snake !")
 clock = pygame.time.Clock()
 FPS = 120
 img_grille = pygame.image.load("grille.png").convert_alpha()
@@ -24,6 +24,8 @@ snake_head_original = pygame.image.load("snake_head.png").convert_alpha()
 snake_head = pygame.transform.rotate(snake_head_original, 90)
 snake_body_original = pygame.image.load("snake_body.png").convert_alpha()
 snake_bottom_original = pygame.image.load("snake_bottom.png").convert_alpha()
+img_fin = pygame.image.load("game_over.png").convert_alpha()
+img_fin = pygame.transform.scale(img_fin, (1280, 720))
 
 timer = 0
 
@@ -228,8 +230,6 @@ menu_fin = False
 while True:
     if menu_fin:
         clock.tick(FPS)
-        img_fin = pygame.image.load("game_over.png").convert_alpha()
-        img_fin = pygame.transform.scale(img_fin, (1280, 720))
         screen.blit(img_fin, (0, 0))
         _str = "Tu as mangé %s patate" % points
         if not points == 1:
