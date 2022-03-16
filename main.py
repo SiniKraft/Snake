@@ -5,6 +5,8 @@ import pickle
 import pygame
 
 screen = pygame.display.set_mode((1280, 720))
+icon = pygame.image.load("snake_icon.png").convert_alpha()
+pygame.display.set_icon(icon)
 pygame.display.set_caption("Snake !")
 clock = pygame.time.Clock()
 FPS = 120
