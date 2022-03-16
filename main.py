@@ -25,18 +25,19 @@ timer = 0
 patates = []
 points = 0
 
-
 successes, failures = pygame.init()
 print("{0} successes and {1} failures".format(successes, failures))
 
 
-def affichage(screen2: pygame.Surface, text: str, rect=(0, 0), _font="Verdana", size=6, color=(238, 244, 247)):
+def affichage(screen2: pygame.Surface, text: str, rect: object = (0, 0), _font: str = "Verdana", size: int = 6,
+              color: tuple = (238, 244, 247)) -> None:
     font = pygame.font.SysFont(_font, size)
     text_img = font.render(text, True, color)
     screen2.blit(text_img, rect)
 
 
-def affichage2(screen3: pygame.Surface, text: str, rect=(0, 0), _font="Verdana", size=6, color=(216, 0, 0)):
+def affichage2(screen3: pygame.Surface, text: str, rect=(0, 0), _font: str = "Verdana", size: int = 6,
+               color: tuple = (216, 0, 0)):
     font = pygame.font.SysFont(_font, size)
     text_img = font.render(text, True, color)
     screen3.blit(text_img, rect)
@@ -49,9 +50,9 @@ def fin():
 
 def add_patate():
     global menu_fin
-    global menu_eror
+    global menu_error
     if points == 100:
-        menu_eror = True
+        menu_error = True
 
     else:
         patates.append(Patate())
@@ -257,10 +258,12 @@ boost = boost_time_to_wait  # Le joueur peut se boost dès le début du jeu
 boost_time_boosting = 250  # Détermine combien de temps le joueur est boost
 body_group = pygame.sprite.Group()
 menu_fin = False
-menu_eror = False
+menu_error = False
+done_save = False
 
 
 def jeux():
+    global done_save
     global timer
     global patates
     global points
@@ -274,16 +277,18 @@ def jeux():
     global boost_time_boosting
     global body_group
     global menu_fin
-    global menu_eror
+    global menu_error
     global snake_head
     global snake_rect
+    done_save = False
     snake_rect = pygame.Rect((1, -1), (20, 20))
     timer = 0
     patates = []
     points = 0
     if not os.path.isfile("sauvegarde.dat"):
-        sauvegarder(0)  # Crée un fichier indiquand que le meilleur score est 0
+        sauvegarder(0)  # Crée un fichier indiquant que le meilleur score est 0
     best_score = charger()
+    print(best_score)
 
     direction = Directions.RIGHT
     current_direction = direction
@@ -291,8 +296,8 @@ def jeux():
     snake_location = Location(pygame.rect.Rect(0, 0, 20, 20))
     historique = [History(Directions.RIGHT) for _ in range(0, 102)]
     corps = []
-    boost_time_to_wait = 1000  # Le temps à attendre avant que le joueur peut denouveau se boost.
-    boost = boost_time_to_wait  # Le joueur peut se boost dès le début du jeu
+    boost_time_to_wait = 1000  # Le temps à attendre avant que le joueur peut de nouveau se booste.
+    boost = boost_time_to_wait  # Le joueur peut se booste dès le début du jeu
     boost_time_boosting = 250  # Détermine combien de temps le joueur est boost
     body_group = pygame.sprite.Group()
     for _x in range(0, 300):
@@ -305,16 +310,23 @@ def jeux():
     corps[4] = Body(Location(pygame.rect.Rect(-1 - 100, -1, 20, 20)), Directions.RIGHT, True)  # Last is bottom :/
 
     menu_fin = False
-    menu_eror = False
+    menu_error = False
 
     while True:
         if menu_fin:
             clock.tick(FPS)
+            if not done_save:
+                done_save = True
+                try:
+                    if points > best_score:
+                        sauvegarder(points)
+                except:
+                    pass
             screen.blit(img_fin, (0, 0))
             _str = "Tu as mangé %s patate" % points
             if not points == 1:
                 _str = _str + "s"
-            affichage(screen, _str + " !", (400, 425), "Verdana", 40)
+            affichage(screen, _str + " ! (Meilleur avant : %s)" % best_score, (200, 425), "Verdana", 40)
             affichage(screen, "Veux-tu recommencer la partie ?", (350, 500), "Verdana", 40)
             affichage(screen, "Appuie sur Entrée pour recommencer", (280, 550), "Verdana", 40)
             affichage(screen, "et sur Echap pour quitter.", (390, 600), "Verdana", 40)
@@ -329,7 +341,7 @@ def jeux():
                         menu_fin = False
                         jeux()
 
-        elif menu_eror:
+        elif menu_error:
             clock.tick(FPS)
             affichage2(screen, "ERROR !", (350, 220), "Verdana", 150)
             pygame.display.update()
