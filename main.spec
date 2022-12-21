@@ -4,7 +4,7 @@
 block_cipher = None
 
 
-a = Analysis(['Pong_game.py'],
+a = Analysis(['main.py'],
              pathex=[],
              binaries=[],
              datas=[],
@@ -33,7 +33,7 @@ exe = EXE(pyz,
           disable_windowed_traceback=False,
           target_arch=None,
           codesign_identity=None,
-          entitlements_file=None , icon='pong.ico')
+          entitlements_file=None , icon='snake_icon.ico')
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,
@@ -41,4 +41,4 @@ coll = COLLECT(exe,
                strip=False,
                upx=True,
                upx_exclude=[],
-               name='Pong_game')
+               name='main')
